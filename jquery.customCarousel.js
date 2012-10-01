@@ -2,7 +2,7 @@
  * Plugin for create carousels
  * @author Anton Vahmin (html.ru@gmail.com)
  * @copyright Clever Site Studio (http://clever-site.ru)
- * @version 3.3.1
+ * @version 3.3
  */
 
 (function($){
@@ -103,7 +103,7 @@
 		},
 
 		data: function(){
-			return $(this).data();
+			return console.log($(this).data());
 		},
 
 		setData: function(){
