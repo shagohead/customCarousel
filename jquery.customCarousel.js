@@ -2,7 +2,7 @@
  * Plugin for create carousels
  * @author Anton Vahmin (html.ru@gmail.com)
  * @copyright Clever Site Studio (http://clever-site.ru)
- * @version 3.2
+ * @version 3.3
  */
 
 (function($){
@@ -10,7 +10,7 @@
 	var methods = {
 		init: function(options){
 			options = $.extend({
-				animation: 'slide',
+				animation: 'slideLeft',
 				displayed: 1,
 				slowpokeMode: false,
 				itemWidth: false,
@@ -120,8 +120,10 @@
 				var cssParams = {
 					'position': 'absolute'
 				}
-				if (data.options.animation == 'slide') {
+				if (data.options.animation == 'slideLeft') {
 					cssParams.marginLeft = (index * data.itemWidth) + 'px';
+				} else if (data.options.animation == 'slideTop') {
+					cssParams.marginTop = (index * data.itemWidth) + 'px';
 				}
 				$(element).css(cssParams);
 			});
@@ -147,9 +149,17 @@
 			clearTimeout(data.sliderTimeout);
 			if (typeof options.animation == 'string') {
 				switch (options.animation) {
-					case 'slide':
+					case 'slideLeft':
 					carouselAbsolute.animate({
 						'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
+					}, 400, function(){
+						data.sliding = false;
+					});
+					break;
+					
+					case 'slideTop':
+					carouselAbsolute.animate({
+						'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
 					}, 400, function(){
 						data.sliding = false;
 					});
