@@ -6,7 +6,7 @@
  */
 
 (function($){
-	
+
 	var methods = {
 		init: function(options){
 			options = $.extend({
@@ -35,6 +35,7 @@
 				options = data.options = options;
 				var carouselItems = data.carouselItems = $(object).children(),
 					carouselRelative = data.carouselRelative = $('<div class="j-customCarousel-relative" />'),
+					carouselMiddle = data.carouselMiddle = $('<div class="j-customCarousel-middle" />'),
 					carouselAbsolute = data.carouselAbsolute = $('<div class="j-customCarousel-absolute" />');
 
 				data.itemsLength = carouselItems.length;
@@ -48,7 +49,8 @@
 				methods.updateItems.call(object);
 
 				// SET CONTAINER
-				carouselRelative.append(carouselAbsolute);
+				carouselRelative.append(carouselMiddle);
+				carouselMiddle.append(carouselAbsolute);
 				carouselAbsolute.append(carouselItems);
 
 				$(object).html(carouselRelative);
@@ -63,7 +65,7 @@
 					'position': 'absolute',
 					'width': '100%'
 				});
-				
+
 
 				if (options.nextItemSelector) {
 					var selector = (data.binded > 1) ? $(options.nextItemSelector).get(index) : options.nextItemSelector;
@@ -73,7 +75,7 @@
 						return false;
 					});
 				}
-				
+
 				if (options.prevItemSelector) {
 					var selector = (data.binded > 1) ? $(options.prevItemSelector).get(index) : options.prevItemSelector;
 					$(selector).bind('click', function(){
@@ -82,7 +84,7 @@
 						return false;
 					});
 				}
-				
+
 				if (options.changeItemSelector) {
 					var selector = (data.binded > 1) ? $(options.changeItemSelector).get(index) : options.changeItemSelector;
 					$(selector).bind('click', function(){
@@ -93,7 +95,7 @@
 						return false;
 					});
 				}
-				
+
 				if (options.autoTimeout > 0) {
 					methods.autoSlide.call(object);
 				}
@@ -156,7 +158,7 @@
 						data.sliding = false;
 					});
 					break;
-					
+
 					case 'slideTop':
 					carouselAbsolute.animate({
 						'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
@@ -164,7 +166,7 @@
 						data.sliding = false;
 					});
 					break;
-					
+
 					case 'fade':
 					carouselItems.fadeOut();
 					carouselItems.eq(data.currentItem).fadeIn(400, function(){
