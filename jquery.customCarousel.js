@@ -2,7 +2,7 @@
  * Plugin for create carousels
  * @author Anton Vahmin (html.ru@gmail.com)
  * @copyright Clever Site Studio (http://clever-site.ru)
- * @version 3.3.1
+ * @version 3.3.2
  */
 
 (function($){
@@ -172,7 +172,7 @@
 					});
 					break;
 				}
-			} else if (typeof options.animation == 'object') {
+			} else if (['object','function'].indexOf(typeof options.animation)) {
 				options.animation(data);
 			} else {
 				console.error('type of animation is "'+typeof options.animation+'"');
