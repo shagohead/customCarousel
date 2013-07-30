@@ -100,20 +100,6 @@
 			});
 		},
 
-		data: function(){
-			return $(this).data();
-		},
-
-		setData: function(){
-			var data = $(this).data();
-			return data[arguments[0]] = arguments[1];
-		},
-
-		setOption: function(){
-			var data = $(this).data();
-			return data.options[arguments[0]] = arguments[1];
-		},
-
 		updateItems: function(){
 			var data = $(this).data();
 			return $(data.carouselItems).each(function(index, element){
