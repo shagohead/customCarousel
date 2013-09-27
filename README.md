@@ -11,6 +11,8 @@ light & simple jquery carousel plugin
 
 `slowpokeMode` - inability to slide many times, before current animation is over
 
+`infiniteLoop` - infinite loop (true by default)
+
 `itemWidth` - width of one item (not need if you use `fade` animation)
 
 `carouselHeight` - name speaks for itself
@@ -22,6 +24,8 @@ light & simple jquery carousel plugin
 `prevItemSelector` - selector of link for slide to previous item
 
 `changeItemSelector` - selector of link for slide by index
+
+`beforeSlideCallback` - function called before slide
 
 `slideCallback` - function called after slide method
 

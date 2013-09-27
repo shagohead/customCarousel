@@ -13,7 +13,7 @@
 				animation: 'slideLeft',
 				displayed: 1,
 				slowpokeMode: false,
-                infiniteCycle: true,
+                infiniteLoop: true,
 				itemWidth: false,
 				carouselHeight: false,
 				autoTimeout: false,
@@ -71,7 +71,7 @@
 					var selector = (data.binded > 1) ? $(options.nextItemSelector).get(index) : options.nextItemSelector;
 					$(selector).bind('click', function(event){
 						if ((data.currentItem + 1) >= data.itemsLength) {
-							if (infiniteCycle == true) {
+							if (infiniteLoop == true) {
 								methods.slide.call(object, 0);
 							}
 						} else {
@@ -85,7 +85,7 @@
 					var selector = (data.binded > 1) ? $(options.prevItemSelector).get(index) : options.prevItemSelector;
 					$(selector).bind('click', function(event){
 						if ((data.currentItem - 1) < 0) {
-							if (infiniteCycle == true) {
+							if (infiniteLoop == true) {
 								methods.slide.call(object, (data.itemsLength - 1));
 							}
 						} else {
