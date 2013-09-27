@@ -13,12 +13,14 @@
 				animation: 'slideLeft',
 				displayed: 1,
 				slowpokeMode: false,
+                infiniteCycle: true,
 				itemWidth: false,
 				carouselHeight: false,
 				autoTimeout: false,
 				nextItemSelector: false,
 				prevItemSelector: false,
 				changeItemSelector: false,
+				beforeSlideCallback: false,
 				slideCallback: false
 			}, options);
 			var binded = this.length;
@@ -67,30 +69,40 @@
 
 				if (options.nextItemSelector) {
 					var selector = (data.binded > 1) ? $(options.nextItemSelector).get(index) : options.nextItemSelector;
-					$(selector).bind('click', function(){
-						var nextItem = ((data.currentItem + 1) >= data.itemsLength) ? 0 : (data.currentItem + 1);
-						methods.slide.call(object, nextItem);
-						return false;
+					$(selector).bind('click', function(event){
+						if ((data.currentItem + 1) >= data.itemsLength) {
+							if (infiniteCycle == true) {
+								methods.slide.call(object, 0);
+							}
+						} else {
+							methods.slide.call(object, (data.currentItem + 1));
+						}
+						event.preventDefault();
 					});
 				}
 				
 				if (options.prevItemSelector) {
 					var selector = (data.binded > 1) ? $(options.prevItemSelector).get(index) : options.prevItemSelector;
-					$(selector).bind('click', function(){
-						var nextItem = ((data.currentItem - 1) < 0) ? (data.itemsLength - 1) : (data.currentItem - 1);
-						methods.slide.call(object, nextItem);
-						return false;
+					$(selector).bind('click', function(event){
+						if ((data.currentItem - 1) < 0) {
+							if (infiniteCycle == true) {
+								methods.slide.call(object, (data.itemsLength - 1));
+							}
+						} else {
+							methods.slide.call(object, (data.currentItem - 1));
+						}
+						event.preventDefault();
 					});
 				}
 				
 				if (options.changeItemSelector) {
 					var selector = (data.binded > 1) ? $(options.changeItemSelector).get(index) : options.changeItemSelector;
-					$(selector).bind('click', function(){
+					$(selector).bind('click', function(event){
 						var itemIndex = $(this).index();
 						if (itemIndex != data.currentItem) {
 							methods.slide.call(object, itemIndex);
 						}
-						return false;
+						event.preventDefault();
 					});
 				}
 				
@@ -130,6 +142,10 @@
                 return false;
             }
             animation = animation || options.animation;
+
+            if (options.beforeSlideCallback) {
+                options.beforeSlideCallback(data);
+            }
 
             data.sliding = true;
             data.currentItem = itemIndex;
