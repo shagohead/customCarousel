@@ -127,7 +127,7 @@
 			});
 		},
 
-		slide: function(itemIndex){
+		slide: function(itemIndex, animation){
             var data = $(this).data();
             var carouselAbsolute = data.carouselAbsolute,
                 carouselItems = data.carouselItems,
