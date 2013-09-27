@@ -116,60 +116,76 @@
 		},
 
 		slide: function(itemIndex){
-			var data = $(this).data();
-			var carouselAbsolute = data.carouselAbsolute,
-				carouselItems = data.carouselItems,
-				options = data.options;
+            var data = $(this).data();
+            var carouselAbsolute = data.carouselAbsolute,
+                carouselItems = data.carouselItems,
+                options = data.options;
 
-			if (options.slowpokeMode && data.sliding) {
-				return false;
-			}
-			if (itemIndex >= data.itemsLength) {
-				console.error('item '+itemIndex+' does not exists. data of this carousel:');
-				console.error(data);
-				return false;
-			}
+            if (options.slowpokeMode && data.sliding) {
+                return false;
+            }
+            if (itemIndex >= data.itemsLength) {
+                console.error('item '+itemIndex+' does not exists. data of this carousel:');
+                console.error(data);
+                return false;
+            }
+            animation = animation || options.animation;
 
-			data.sliding = true;
-			data.currentItem = itemIndex;
-			clearTimeout(data.sliderTimeout);
-			if (typeof options.animation == 'string') {
-				switch (options.animation) {
-					case 'slideLeft':
-					carouselAbsolute.animate({
-						'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
-					}, 400, function(){
-						data.sliding = false;
-					});
-					break;
-					
-					case 'slideTop':
-					carouselAbsolute.animate({
-						'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
-					}, 400, function(){
-						data.sliding = false;
-					});
-					break;
-					
-					case 'fade':
-					carouselItems.fadeOut();
-					carouselItems.eq(data.currentItem).fadeIn(400, function(){
-						data.sliding = false;
-					});
-					break;
-				}
-			} else if (['object','function'].indexOf(typeof options.animation)) {
-				options.animation(data);
-			} else {
-				console.error('type of animation is "'+typeof options.animation+'"');
-			}
-			if (options.slideCallback) {
-				options.slideCallback(data);
-			}
-			if (options.autoTimeout > 0) {
-				methods.autoSlide.call(this);
-			}
-		},
+            data.sliding = true;
+            data.currentItem = itemIndex;
+            clearTimeout(data.sliderTimeout);
+            if (typeof animation == 'string') {
+                switch (animation) {
+                    case 'slideLeft':
+                        carouselAbsolute.animate({
+                            'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
+                        }, 400, function(){
+                            data.sliding = false;
+                        });
+                        break;
+
+                    case 'slideTop':
+                        carouselAbsolute.animate({
+                            'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
+                        }, 400, function(){
+                            data.sliding = false;
+                        });
+                        break;
+
+                    case 'switchLeft':
+                        carouselAbsolute.css({
+                            'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
+                        });
+                        data.sliding = false;
+                        break;
+
+                    case 'switchTop':
+                        carouselAbsolute.css({
+                            'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
+                        });
+                        data.sliding = false;
+                        break;
+
+                    case 'fade':
+                        carouselItems.fadeOut();
+                        carouselItems.eq(data.currentItem).fadeIn(400, function(){
+                            data.sliding = false;
+                        });
+                        break;
+                }
+            } else if (['object','function'].indexOf(typeof animation)) {
+                animation(data);
+            } else {
+                console.error('type of animation is "'+typeof animation+'"');
+            }
+
+            if (options.slideCallback) {
+                options.slideCallback(data);
+            }
+            if (options.autoTimeout > 0) {
+                methods.autoSlide.call(this);
+            }
+        },
 
 		autoSlide: function(){
 			var data = $(this).data();
