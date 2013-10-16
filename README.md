@@ -3,48 +3,55 @@ customCarousel
 
 light & simple jquery carousel plugin
 
-### options:
+### examples:
 
-`animation` - may be a string or a function. if this is string, it should be a `slideLeft` or `slideTop` or `fade`
-
-`displayed` - count of items to showed at same time
-
-`slowpokeMode` - inability to slide many times, before current animation is over
-
-`infiniteLoop` - infinite loop (true by default)
-
-`itemWidth` - width of one item (not need if you use `fade` animation)
-
-`carouselHeight` - name speaks for itself
-
-`autoTimeout` - timer (in ms) for auto sliding
-
-`nextItemSelector` - selector of link for slide to next item
-
-`prevItemSelector` - selector of link for slide to previous item
-
-`changeItemSelector` - selector of link for slide by index
-
-`beforeSlideCallback` - function called before slide
-
-`slideCallback` - function called after slide method
-
-
-### also you can call these methods:
-
-`updateItems` - update css parameters of items
-
-`slide` - slide to index, example:
+just create carousel:
 ```
-$('.example-selector').customCarousel('slide', 1);
+$('.example-carousel').customCarousel();
 ```
 
-`autoSlide` - start of sliding by timeout (needed to be set by option `autoTimeout`)
+create carousel with auto sliding:
+```
+$('.example-carousel').customCarousel({
+    slideTimeout: 1000
+});
+```
 
+create carousel and bind events on "arrows" clicks:
+```
+$('.example-carousel').customCarousel({
+    nextSelector: '.toRight',
+    prevSelector: '.toLeft'
+});
+```
+
+create carousel with custom animation:
+```
+$('.example-carousel').customCarousel({
+    nextSelector: '.toRight',
+    prevSelector: '.toLeft',
+    animation: function(data, offset){
+        data.carouselAbsolute.animate(
+            {
+                'margin-left': offset,
+                'opacity': 0.7
+            },
+            800,
+            function(){
+                data.sliding = false;
+                data.carouselAbsolute.animate(
+                    {'opacity': 1},
+                    400
+                );
+            }
+        );
+    }
+});
+```
 
 ### ...
-you can access of all options and other data by using method data, example:
+you can access of all options and other data by using method 'data()', example:
 ```
-$('.example-selector').data();
-$('.example-selector').data('options');
+$('.example-carousel').data();
+$('.example-carousel').data('options');
 ```
