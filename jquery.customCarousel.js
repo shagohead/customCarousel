@@ -1,226 +1,308 @@
 /**
  * Plugin for create carousels
- * @author Anton Vahmin (html.ru@gmail.com)
- * @copyright Clever Site Studio (http://clever-site.ru)
- * @version 3.5
+ * @author Anton Vakhmin (html.ru@gmail.com)
+ * @version 4.0
  */
 
 (function($){
-	
-	var methods = {
-		init: function(options){
-			options = $.extend({
-				animation: 'slideLeft',
-				displayed: 1,
-				slowpokeMode: false,
-                infiniteLoop: true,
-				itemWidth: false,
-				carouselHeight: false,
-				autoTimeout: false,
-				nextItemSelector: false,
-				prevItemSelector: false,
-				changeItemSelector: false,
-				beforeSlideCallback: false,
-				slideCallback: false
-			}, options);
-			var binded = this.length;
+    
+    var methods = {
+        __init: function(options){
+            options = $.extend({
+                animation: 'slideLeft',
+                slowpokeMode: true,
+                slideTimeout: false,
+                nextSelector: false,
+                prevSelector: false,
+                changeSelector: false,
+                disabledClass: false,
+                beforeSlideCallback: false,
+                afterSlideCallback: false,
+                debug: false
+            }, options);
+            
+            var bindedCount = this.length;
 
-			return this.each(function(index, element){
-				var object = this;
-				var data = $(object).data();
-				data.binded = binded;
-				data.sliding = false;
-				data.currentItem = 0;
-				data.itemsLength = 0;
-				data.itemWidth = 0;
-				data.carouselHeight = 0;
-				options = data.options = options;
-				var carouselItems = data.carouselItems = $(object).children(),
-					carouselRelative = data.carouselRelative = $('<div class="j-customCarousel-relative" />'),
-					carouselAbsolute = data.carouselAbsolute = $('<div class="j-customCarousel-absolute" />');
+            return this.each(function(index, element){
+                var context = this;
+                var data = $(this).data();
+                data.bindedCount = bindedCount;
+                data.isSliding = false;
+                data.currentIndex = 0;
+                data.itemsDimensions = [];
+                data.options = options;
+                if (options.infiniteLoop) {
+                    data.infiniteLoop = options.infiniteLoop;
+                } else {
+                    data.infiniteLoop = (options.disabledClass) ? false : true;
+                }
+                var carouselItems = data.carouselItems = $(this).children(),
+                    carouselRelative = data.carouselRelative = $('<div class="j-customCarousel-relative" />'),
+                    carouselAbsolute = data.carouselAbsolute = $('<div class="j-customCarousel-absolute" />');
 
-				data.itemsLength = carouselItems.length;
-				if (options.displayed > 1) {
-					data.itemsLength = data.itemsLength - (options.displayed - 1);
-				}
-				data.itemWidth = (options.itemWidth) ? options.itemWidth : $(carouselItems.get(0)).width();
-				data.carouselHeight = (options.carouselHeight) ? options.carouselHeight : $(carouselItems.get(0)).height();
+                methods.getItemsDimensions.call(this);
+                
+                // добавление контейнеров в код
+                carouselRelative.append(carouselAbsolute);
+                carouselAbsolute.append(carouselItems);
+                $(this).html(carouselRelative);
 
-				// UPDATE ITEMS CSS
-				methods.updateItems.call(object);
+                // css для контейнеров
+                carouselRelative.css({
+                    'overflow': 'hidden',
+                    'position': 'relative',
+                });
+                carouselAbsolute.css({
+                    'position': 'absolute',
+                    'width': '100%'
+                });
 
-				// SET CONTAINER
-				carouselRelative.append(carouselAbsolute);
-				carouselAbsolute.append(carouselItems);
+                data.containerDimensions = {
+                    width: carouselRelative.width(),
+                    height: carouselRelative.height()
+                };
 
-				$(object).html(carouselRelative);
+                for (var i = 0; i < data.itemsDimensions.length; i++) {
+                    if (data.containerDimensions.height < data.itemsDimensions[i].height) {
+                        data.containerDimensions.height = data.itemsDimensions[i].height;
+                    }
+                }
+                carouselRelative.height(data.containerDimensions.height);
 
-				// UPDATE CONTAINER CSS
-				carouselRelative.css({
-					'overflow': 'hidden',
-					'position': 'relative',
-					'height': data.carouselHeight + 'px',
-				});
-				carouselAbsolute.css({
-					'position': 'absolute',
-					'width': '100%'
-				});
-				
+                if (options.slideDimension) {
+                    data.slideDimension = options.slideDimension;
+                } else if (options.animation) {
+                    switch (options.animation) {
+                        case 'slideTop':
+                        case 'switchTop':
+                            data.slideDimension = 'height';
+                            break;
+                        case 'fade':
+                            data.slideDimension = '';
+                            break;
+                        default:
+                            data.slideDimension = 'width';
+                            break;
+                    }
+                }
 
-				if (options.nextItemSelector) {
-					var selector = (data.binded > 1) ? $(options.nextItemSelector).get(index) : options.nextItemSelector;
-					$(selector).bind('click', function(event){
-						if ((data.currentItem + 1) >= data.itemsLength) {
-							if (options.infiniteLoop == true) {
-								methods.slide.call(object, 0);
-							}
-						} else {
-							methods.slide.call(object, (data.currentItem + 1));
-						}
-						event.preventDefault();
-					});
-				}
-				
-				if (options.prevItemSelector) {
-					var selector = (data.binded > 1) ? $(options.prevItemSelector).get(index) : options.prevItemSelector;
-					$(selector).bind('click', function(event){
-						if ((data.currentItem - 1) < 0) {
-							if (options.infiniteLoop == true) {
-								methods.slide.call(object, (data.itemsLength - 1));
-							}
-						} else {
-							methods.slide.call(object, (data.currentItem - 1));
-						}
-						event.preventDefault();
-					});
-				}
-				
-				if (options.changeItemSelector) {
-					var selector = (data.binded > 1) ? $(options.changeItemSelector).get(index) : options.changeItemSelector;
-					$(selector).bind('click', function(event){
-						var itemIndex = $(this).index();
-						if (itemIndex != data.currentItem) {
-							methods.slide.call(object, itemIndex);
-						}
-						event.preventDefault();
-					});
-				}
-				
-				if (options.autoTimeout > 0) {
-					methods.autoSlide.call(object);
-				}
-			});
-		},
+                methods.setItemsCss.call(this);
+                methods.getContainerDimensions.call(this);
+                
+                // устанвока обработчика для переключения на след. элемент
+                if (options.nextSelector) {
+                    var selector = (data.binded > 1) ? $(options.nextSelector).get(index) : options.nextSelector;
+                    $(selector).bind('click', function(event){
+                        methods.slide.call(context, (data.currentIndex + 1));
+                        event.preventDefault();
+                    });
+                }
+                
+                // устанвока обработчика для переключения на пред. элемент
+                if (options.prevSelector) {
+                    var selector = (data.binded > 1) ? $(options.prevSelector).get(index) : options.prevSelector;
+                    $(selector).bind('click', function(event){
+                        methods.slide.call(context, (data.currentIndex - 1));
+                        event.preventDefault();
+                    });
+                }
+                
+                // устанвока обработчика для произвольного переключения элементов
+                if (options.changeSelector) {
+                    var selector = (data.binded > 1) ? $(options.changeSelector).get(index) : options.changeSelector;
+                    $(selector).bind('click', function(event){
+                        var itemIndex = $(this).index();
+                        if (itemIndex != data.currentIndex) {
+                            methods.slide.call(context, itemIndex);
+                        }
+                        event.preventDefault();
+                    });
+                }
+                if (data.options.debug) {
+                    console.log('inited');
+                    console.log(data);
+                }
+                
+                methods.checkActive.call(context);
+                if (options.slideTimeout > 0) {
+                    methods.autoSlide.call(context);
+                }
+            });
+        },
 
-		updateItems: function(){
-			var data = $(this).data();
-			return $(data.carouselItems).each(function(index, element){
-				var cssParams = {
-					'position': 'absolute'
-				}
-				if (data.options.animation == 'slideLeft') {
-					cssParams.marginLeft = (index * data.itemWidth) + 'px';
-				} else if (data.options.animation == 'slideTop') {
-					cssParams.marginTop = (index * data.itemWidth) + 'px';
-				}
-				$(element).css(cssParams);
-			});
-		},
-
-		slide: function(itemIndex, animation){
+        // обновление css элементов в зависимости от анимации
+        setItemsCss: function(){
+            var context = this;
             var data = $(this).data();
-            var carouselAbsolute = data.carouselAbsolute,
-                carouselItems = data.carouselItems,
-                options = data.options;
+            return $(data.carouselItems).each(function(index, element){
+                var cssParams = {
+                    'position': 'absolute'
+                }
+                if (data.slideDimension == 'width') {
+                    cssParams.marginLeft = methods.getItemOffset.call(context, 'width', index) + 'px';
+                } else if (data.slideDimension == 'height') {
+                    cssParams.marginTop = methods.getItemOffset.call(context, 'height', index) + 'px';
+                }
+                $(element).css(cssParams);
+            });
+        },
 
-            if (options.slowpokeMode && data.sliding) {
-                return false;
+        // получение отступа для элемента по определенной оси
+        getItemOffset: function(dimenstionName, itemIndex){
+            var data = $(this).data();
+            var offset = 0;
+            for (var i = 0; i < data.itemsDimensions.length; i++) {
+                if (i >= itemIndex) {
+                    break;
+                }
+                offset += data.itemsDimensions[i][dimenstionName];
             }
-            if (itemIndex >= data.itemsLength) {
-                console.error('item '+itemIndex+' does not exists. data of this carousel:');
-                console.error(data);
-                return false;
-            }
-            animation = animation || options.animation;
+            return offset;
+        },
 
-            if (options.beforeSlideCallback) {
-                options.beforeSlideCallback(data);
+        // обновление списка размеров эелемента(ов)
+        getItemsDimensions: function(itemIndex){
+            var data = $(this).data();
+            if (itemIndex) {
+                data.itemsDimensions[itemIndex] = {
+                    width: $(data.carouselItems[i]).outerWidth(),
+                    height: $(data.carouselItems[i]).outerHeight()
+                };
+            } else {
+                for (var i = 0; i < data.carouselItems.length; i++) {
+                    data.itemsDimensions.push({
+                        width: $(data.carouselItems[i]).outerWidth(),
+                        height: $(data.carouselItems[i]).outerHeight()
+                    });
+                }
             }
+        },
 
+        // обновление размеров контейнера
+        getContainerDimensions: function(){
+            var data = $(this).data();
+            if (['width', 'height'].indexOf(data.slideDimension) > -1) {
+                data.maximumOffset = (methods.getItemOffset.call(this, data.slideDimension, data.itemsDimensions.length) - ((data.slideDimension == 'width') ? data.carouselRelative.width() : data.carouselRelative.height()));
+                data.maximumItems = 0;
+                var offsetRemain = data.maximumOffset;
+                while (offsetRemain > 0) {
+                    offsetRemain -= data.itemsDimensions[data.maximumItems][data.slideDimension];
+                    data.maximumItems++;
+                }
+                data.maximumOffset *= -1;
+            }
+        },
+
+        slide: function(itemIndex, animation){
+            var context = this;
+            var data = $(this).data();
+            if (data.options.debug) console.log('trying slide to ' + itemIndex);
+            if (data.options.slowpokeMode && data.sliding) return false;
+            if (itemIndex > data.maximumItems) {
+                if (data.options.debug) console.log('at end of list');
+                if (data.infiniteLoop == true) {
+                    itemIndex = 0;
+                } else {
+                    return false;
+                }
+            }
+            if (itemIndex < 0) {
+                if (data.options.debug) console.log('at start of list');
+                if (data.infiniteLoop == true) {
+                    itemIndex = data.maximumItems;
+                } else {
+                    return false;
+                }
+            }
+            animation = animation || data.options.animation;
+            if (data.options.beforeSlideCallback) {
+                data.options.beforeSlideCallback(data);
+            }
             data.sliding = true;
-            data.currentItem = itemIndex;
+            data.currentIndex = itemIndex;
             clearTimeout(data.sliderTimeout);
+            if (['width', 'height'].indexOf(data.slideDimension) > -1) {
+                var offset = (methods.getItemOffset.call(context, data.slideDimension, data.currentIndex) * -1);
+                if (offset <= data.maximumOffset) {
+                    offset = data.maximumOffset;
+                }
+                offset += 'px';
+            }
             if (typeof animation == 'string') {
                 switch (animation) {
                     case 'slideLeft':
-                        carouselAbsolute.animate({
-                            'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
-                        }, 400, function(){
-                            data.sliding = false;
-                        });
+                        data.carouselAbsolute.animate({'margin-left': offset}, 400, function(){data.sliding = false;});
                         break;
 
                     case 'slideTop':
-                        carouselAbsolute.animate({
-                            'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
-                        }, 400, function(){
-                            data.sliding = false;
-                        });
+                        data.carouselAbsolute.animate({'margin-top': offset}, 400, function(){data.sliding = false;});
                         break;
 
                     case 'switchLeft':
-                        carouselAbsolute.css({
-                            'margin-left': (data.currentItem * data.itemWidth * -1)+'px'
-                        });
+                        data.carouselAbsolute.css('margin-left', offset);
                         data.sliding = false;
                         break;
 
                     case 'switchTop':
-                        carouselAbsolute.css({
-                            'margin-top': (data.currentItem * data.itemWidth * -1)+'px'
-                        });
+                        data.carouselAbsolute.css('margin-top', offset);
                         data.sliding = false;
                         break;
 
                     case 'fade':
-                        carouselItems.fadeOut();
-                        carouselItems.eq(data.currentItem).fadeIn(400, function(){
-                            data.sliding = false;
-                        });
+                        data.carouselItems.fadeOut();
+                        data.carouselItems.eq(data.currentIndex).fadeIn(400, function(){data.sliding = false;});
                         break;
                 }
             } else if (['object','function'].indexOf(typeof animation)) {
-                animation(data);
+                animation(data, offset);
             } else {
                 console.error('type of animation is "'+typeof animation+'"');
             }
-
-            if (options.slideCallback) {
-                options.slideCallback(data);
+            methods.checkActive.call(context);
+            if (data.options.afterSlideCallback) {
+                data.options.afterSlideCallback(data);
             }
-            if (options.autoTimeout > 0) {
+            if (data.options.slideTimeout > 0) {
                 methods.autoSlide.call(this);
             }
         },
 
-		autoSlide: function(){
-			var data = $(this).data();
-			var object = this;
-			data.sliderTimeout = setTimeout(function(){
-				var nextItem = ((data.currentItem + 1) >= data.itemsLength) ? 0 : (data.currentItem + 1);
-				methods.slide.call(object, nextItem);
-			}, data.options.autoTimeout);
-		}
-	}
+        checkActive: function(){
+            var data = $(this).data();
+            if (data.options.disabledClass) {
+                var prevSelector = (data.binded > 1) ? $(data.options.prevSelector).get(index) : data.options.prevSelector;
+                var nextSelector = (data.binded > 1) ? $(data.options.nextSelector).get(index) : data.options.nextSelector;
+                if (data.currentIndex == 0) {
+                    $(prevSelector).addClass(data.options.disabledClass);
+                } else {
+                    $(prevSelector).removeClass(data.options.disabledClass);
+                }
+                if (data.currentIndex >= data.maximumItems) {
+                    $(nextSelector).addClass(data.options.disabledClass);
+                } else {
+                    $(nextSelector).removeClass(data.options.disabledClass);
+                }
+            }
+        },
 
-	$.fn.customCarousel = function(request){
-		if (methods[request]) {
-			return methods[request].apply(this, Array.prototype.slice.call(arguments, 1));
-		} else if (typeof request === 'object' || !request) {
-			return methods.init.apply(this, arguments);
-		} else {
-			$.error('Method '+request+' does not exist on jQuery.tooltip');
-		}
-	}
+        autoSlide: function(){
+            var context = this;
+            var data = $(this).data();
+            if (data.options.debug) console.log('autoSlide');
+            data.sliderTimeout = setTimeout(function(){
+                methods.slide.call(context, (data.currentIndex + 1));
+            }, data.options.slideTimeout);
+        }
+    }
+
+    $.fn.customCarousel = function(request){
+        if (methods[request]) {
+            return methods[request].apply(this, Array.prototype.slice.call(arguments, 1));
+        } else if (typeof request === 'object' || !request) {
+            return methods.__init.apply(this, arguments);
+        } else {
+            $.error('Method '+request+' does not exist on jQuery.tooltip');
+        }
+    }
 
 })(jQuery);
