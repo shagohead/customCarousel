@@ -301,7 +301,7 @@
         } else if (typeof request === 'object' || !request) {
             return methods.__init.apply(this, arguments);
         } else {
-            $.error('Method '+request+' does not exist on jQuery.tooltip');
+            $.error('Method '+request+' does not exist on jQuery.customCarousel');
         }
     }
 
