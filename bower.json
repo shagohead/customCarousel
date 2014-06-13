@@ -1,0 +1,23 @@
+{
+  "name": "customCarousel",
+  "version": "4.0.0",
+  "homepage": "https://github.com/LastDanmer/customCarousel",
+  "authors": [
+    "LastDanmer <html.ru@gmail.com>"
+  ],
+  "description": "light & simple jquery carousel plugin",
+  "main": "jquery.customCarousel.js",
+  "keywords": [
+    "carousel",
+    "jquery"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+  ],
+  "dependencies": {
+    "jquery": ">=1.7.0"
+  }
+}
